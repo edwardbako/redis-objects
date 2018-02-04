@@ -58,7 +58,11 @@ class Redis
 
       def marshal(value, domarshal=false)
         if options[:marshal] || domarshal
-          Marshal.dump(value)
+          if options[:map]
+            value
+          else
+            Marshal.dump(value)
+          end
         else
           value
         end
@@ -71,9 +75,17 @@ class Redis
           if value.is_a?(Array)
             value.map{|v| unmarshal(v, domarshal)}
           elsif !value.is_a?(String)
-            value
+            if options[:map]
+              value.send options[:map]
+            else
+              value
+            end
           else
-            Marshal.load(value) 
+            if options[:map]
+              value.send options[:map]
+            else
+              Marshal.load(value)
+            end
           end
         else
           value
